@@ -1,0 +1,7 @@
+/Data
+/log
+/venv
+/Titanic_prediction.egg-info
+__pycache__.py
+/logs
+notebooks/.ipynb_checkpoints/

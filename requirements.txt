@@ -1,0 +1,11 @@
+pandas
+numpy
+seaborn
+scikit-learn
+jupyter
+seaborn
+joblib
+#catboost
+optuna
+mlflow
+-e .
