@@ -1,0 +1,22 @@
+artifact_path: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/models/m-6d6e46680f4e404bb55944c52218add5/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.14.0
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+mlflow_version: 3.6.0
+model_id: m-6d6e46680f4e404bb55944c52218add5
+model_size_bytes: 771
+model_uuid: m-6d6e46680f4e404bb55944c52218add5
+prompts: null
+run_id: ef40e78aab9a4a438ed19b7bf3a18210
+utc_time_created: '2025-11-16 14:10:53.273195'

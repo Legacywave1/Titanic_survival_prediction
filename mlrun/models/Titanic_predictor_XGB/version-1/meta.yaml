@@ -1,0 +1,15 @@
+creation_timestamp: 1763302270614
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1763302270614
+model_id: m-b64d61f1c1ca4899a1bacbe277de5371
+name: Titanic_predictor_XGB
+run_id: a365c3126d204ee5825c0a5cff149d74
+run_link: null
+source: models:/m-b64d61f1c1ca4899a1bacbe277de5371
+status: READY
+status_message: null
+storage_location: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/models/m-b64d61f1c1ca4899a1bacbe277de5371/artifacts
+user_id: null
+version: 1

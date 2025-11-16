@@ -1,0 +1,14 @@
+artifact_uri: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/bfcd45bfe561476c85057d458455347a/artifacts
+end_time: 1763301390252
+entry_point_name: ''
+experiment_id: '236988911479320639'
+lifecycle_stage: active
+run_id: bfcd45bfe561476c85057d458455347a
+run_name: Random Forest_Optimization
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763301178362
+status: 3
+tags: []
+user_id: Ankuc
