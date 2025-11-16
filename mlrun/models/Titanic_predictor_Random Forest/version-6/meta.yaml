@@ -1,0 +1,15 @@
+creation_timestamp: 1763311974243
+current_stage: None
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1763311974243
+model_id: m-ac8889f551ca4b25b8306697cf1ba30f
+name: Titanic_predictor_Random Forest
+run_id: 7cd10926126d43e9b6b2816de2b3c69f
+run_link: null
+source: models:/m-ac8889f551ca4b25b8306697cf1ba30f
+status: READY
+status_message: null
+storage_location: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/models/m-ac8889f551ca4b25b8306697cf1ba30f/artifacts
+user_id: null
+version: 6

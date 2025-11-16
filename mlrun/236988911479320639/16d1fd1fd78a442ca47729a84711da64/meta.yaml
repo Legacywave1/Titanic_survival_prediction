@@ -1,0 +1,14 @@
+artifact_uri: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/16d1fd1fd78a442ca47729a84711da64/artifacts
+end_time: 1763313742680
+entry_point_name: ''
+experiment_id: '236988911479320639'
+lifecycle_stage: active
+run_id: 16d1fd1fd78a442ca47729a84711da64
+run_name: Logistic Regression_Optimization
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763313742348
+status: 3
+tags: []
+user_id: Ankuc

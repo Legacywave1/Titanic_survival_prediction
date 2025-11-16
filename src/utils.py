@@ -4,6 +4,7 @@ from src.logger import logging
 import os
 import sys
 
+
 def save_object(file_path, model):
     try:
         logging.info(f'Save {model} pkl using joblib')
@@ -14,5 +15,14 @@ def save_object(file_path, model):
             joblib.dump(model, file)
             logging.info(f'Save {model} pkl using joblib successful')
 
+    except Exception as e:
+        raise CustomException(str(e), sys)
+
+
+def load_object(file_path):
+    try:
+        logging.info('Unpacking object')
+        with open(file_path, 'rb') as file_obj:
+            return joblib.load(file_obj)
     except Exception as e:
         raise CustomException(str(e), sys)

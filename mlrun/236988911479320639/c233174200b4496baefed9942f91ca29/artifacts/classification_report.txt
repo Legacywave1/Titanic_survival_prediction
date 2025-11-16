@@ -1,0 +1,8 @@
+              precision    recall  f1-score   support
+
+        Died       0.82      0.89      0.85       110
+    Survived       0.80      0.68      0.73        69
+
+    accuracy                           0.81       179
+   macro avg       0.81      0.79      0.79       179
+weighted avg       0.81      0.81      0.81       179

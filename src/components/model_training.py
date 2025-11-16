@@ -219,6 +219,8 @@ class ModelTraining:
 
         except Exception as e:
             raise CustomException(str(e), sys)
+
+
 if __name__ == '__main__':
     model_trainer = ModelTraining()
     model_path, model_name, score = model_trainer.initiate_train(r'artifacts\data_transformed.csv')

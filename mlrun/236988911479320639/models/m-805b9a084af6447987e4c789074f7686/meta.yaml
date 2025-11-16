@@ -1,0 +1,10 @@
+artifact_location: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/models/m-805b9a084af6447987e4c789074f7686/artifacts
+creation_timestamp: 1763315972759
+experiment_id: '236988911479320639'
+last_updated_timestamp: 1763315977353
+model_id: m-805b9a084af6447987e4c789074f7686
+model_type: null
+name: xgb_model
+source_run_id: 1633ad8f89144d97ba847b978b83cd7a
+status: 2
+status_message: null

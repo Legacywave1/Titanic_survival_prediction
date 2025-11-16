@@ -1,0 +1,10 @@
+artifact_location: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/models/m-997c665f5a9b46e09cb22d38502deca0/artifacts
+creation_timestamp: 1763306250216
+experiment_id: '236988911479320639'
+last_updated_timestamp: 1763306259690
+model_id: m-997c665f5a9b46e09cb22d38502deca0
+model_type: null
+name: random_forest_model
+source_run_id: 3a8d1a46d3d64ebca64d3de8e4344073
+status: 2
+status_message: null

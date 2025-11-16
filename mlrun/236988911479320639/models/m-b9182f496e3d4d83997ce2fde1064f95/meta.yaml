@@ -1,0 +1,10 @@
+artifact_location: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/models/m-b9182f496e3d4d83997ce2fde1064f95/artifacts
+creation_timestamp: 1763315435173
+experiment_id: '236988911479320639'
+last_updated_timestamp: 1763315440695
+model_id: m-b9182f496e3d4d83997ce2fde1064f95
+model_type: null
+name: Best_model
+source_run_id: 7125888a5931408facb2efc022461580
+status: 2
+status_message: null
