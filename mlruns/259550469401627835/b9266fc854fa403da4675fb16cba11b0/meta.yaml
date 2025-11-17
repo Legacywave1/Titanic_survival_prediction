@@ -1,0 +1,14 @@
+artifact_uri: file:C:\Users\Ankuc\OneDrive\Desktop\Titanic\mlruns/259550469401627835/b9266fc854fa403da4675fb16cba11b0/artifacts
+end_time: 1763341254003
+entry_point_name: ''
+experiment_id: '259550469401627835'
+lifecycle_stage: active
+run_id: b9266fc854fa403da4675fb16cba11b0
+run_name: XGB_opt
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763341242245
+status: 3
+tags: []
+user_id: Ankuc

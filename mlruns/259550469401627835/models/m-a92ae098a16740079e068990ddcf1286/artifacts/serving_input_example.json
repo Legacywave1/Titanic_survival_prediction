@@ -1,0 +1,32 @@
+{
+  "dataframe_split": {
+    "columns": [
+      "num__Fare",
+      "num__Age",
+      "num__FamilySize",
+      "num__FarePerPerson",
+      "cat_oh__Sex_male",
+      "cat_oh__IsAlone_1",
+      "cat_oe__Embarked",
+      "cat_oe__AgeGroup",
+      "cat_oe__Title",
+      "cat_oe__FareGroup",
+      "cat_oe__Pclass"
+    ],
+    "data": [
+      [
+        0.5138115038918489,
+        -0.1782806105025164,
+        -0.5563385795422586,
+        0.9578263322470756,
+        1.0,
+        1.0,
+        2.0,
+        0.0,
+        2.0,
+        3.0,
+        2.0
+      ]
+    ]
+  }
+}
