@@ -4,47 +4,47 @@ on:
   push:
     branches: ["main"]
 
-  jobs:
-    deploy:
-      name: Deploy
-      runs-on: ubuntu-latest
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-action/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
-          aws-secret-key-id: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-          aws-region: us-east-1
+    - name: Configure AWS credentials
+      uses: aws-action/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
+        aws-secret-key-id: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+        aws-region: us-east-1
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-action/amazon-ecr-login@v1
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-action/amazon-ecr-login@v1
 
-      - name: Build. Tag and Push Image to ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{steps.login-ecr.outputs.registry}}
-          ECR_REPOSITORY: titanic-api
-          IMAGE_TAG: ${{github.sha}}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image =  $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >>$GITHUB_OUTPUT
+    - name: Build. Tag and Push Image to ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{steps.login-ecr.outputs.registry}}
+        ECR_REPOSITORY: titanic-api
+        IMAGE_TAG: ${{github.sha}}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image =  $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >>$GITHUB_OUTPUT
 
-      - name: Render Amazon ECS Task Definition
-        id: render-task-definition
-        uses: aws-actions/amazon-ecs-render-task-defintion@v1
-        with:
-          task-definition: task-definition.json
-          container-name: titanic-api
-          image: ${{ steps.build-image.outputs.image}}
+    - name: Render Amazon ECS Task Definition
+      id: render-task-definition
+      uses: aws-actions/amazon-ecs-render-task-defintion@v1
+      with:
+        task-definition: task-definition.json
+        container-name: titanic-api
+        image: ${{ steps.build-image.outputs.image}}
 
-      - name: Deploy Amazon ECS Task Defintion
-        uses: aws-actions/amazon-ecs-deploy-task-definitions@1
+    - name: Deploy Amazon ECS Task Defintion
+      uses: aws-actions/amazon-ecs-deploy-task-definitions@1
         with:
           task-definition: ${{steps.render-task-definition.outputs.task-definition}}
           service: Titanic_prediction_task-service-yto69v5j
