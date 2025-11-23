@@ -18,7 +18,7 @@ def get_requirements(file_path: str) -> List[str]:
 
 setup(
     name = 'Titanic-prediction',
-    version = '0.0.1',
+    version = '0.0.2',
     author = 'Cyprian',
     author_email = 'cypriananku121@gmail.com',
     packages = find_packages(),
