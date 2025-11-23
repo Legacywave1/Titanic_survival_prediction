@@ -12,7 +12,7 @@ COPY src ./src
 
 COPY app.py .
 
-COPY mlruns ./mlruns
+COPY mlrun ./mlrun
 
 COPY setup.py .
 

@@ -21,8 +21,29 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val
 from xgboost import XGBClassifier
 from sklearn.linear_model import LogisticRegression
 from mlflow.tracking import MlflowClient
+from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
+
+# --- DYNAMIC PATH SETUP (Matches Predict Pipeline) ---
+# 1. Get the absolute path of this script file
+current_file_path = Path(__file__).resolve()
+
+# 2. Go up 3 levels: src/pipeline/train_pipeline.py -> src/pipeline -> src -> ROOT
+PROJECT_ROOT = current_file_path.parent.parent.parent
+
+# 3. Define where mlrun is relative to ROOT
+MLRUN_PATH = PROJECT_ROOT / "mlrun"
+
+# 4. Generate the URI (handles file:///C:/... or file:///app/...) automatically
+TRACKING_URI = MLRUN_PATH.as_uri()
+
+# 5. Set the URI globally
+mlflow.set_tracking_uri(TRACKING_URI)
+
+# Ensure src can be imported
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 
 @dataclass
 class DataIngestionConfig:
@@ -36,6 +57,10 @@ class DataIngestion:
     def initiate_data_ingestion(self, data_path: str = r'Data/Titanic-Dataset.csv'):
         logging.info('Data ingestion started')
         try:
+            # Fix: Handle data path relative to project root if needed
+            if not os.path.isabs(data_path):
+                 data_path = os.path.join(PROJECT_ROOT, data_path)
+
             if not os.path.exists(data_path):
                 logging.warning(f'Data file not found at {data_path}. Creating dummy dataset.')
                 os.makedirs(os.path.dirname(data_path), exist_ok=True)
@@ -47,6 +72,7 @@ class DataIngestion:
                     'Fare': [7.25, 71.2833, 7.925], 'Cabin': [np.nan, 'C85', np.nan], 'Embarked': ['S', 'C', 'S']
                 })
                 dummy_df.to_csv(data_path, index=False)
+
             df = pd.read_csv(data_path)
             logging.info('Dataset loaded into DataFrame')
             df.to_csv(self.ingestion_config.raw_data_path, index=False, header=True)
@@ -151,13 +177,16 @@ class DataTransformation:
 @dataclass
 class ModelTrainingConfig:
     model_path: str = os.path.join('artifacts', 'trained_model.pkl')
-    mlflow_dir: str = 'mlruns'
+    mlflow_dir: str = 'mlrun'
 
 class ModelTraining:
     def __init__(self):
         self.config = ModelTrainingConfig()
-        os.makedirs(self.config.mlflow_dir, exist_ok=True)
-        mlflow.set_tracking_uri(f"file:{os.path.abspath(self.config.mlflow_dir)}")
+        # Ensure we create the directory pointed to by our dynamic path
+        MLRUN_PATH.mkdir(parents=True, exist_ok=True)
+
+        # Use the global URI we set at the top
+        mlflow.set_tracking_uri(TRACKING_URI)
         mlflow.set_experiment('Titanic Survival Predictor')
 
     def objective(self, trial, X, y, name):
@@ -273,7 +302,8 @@ class ModelPromotionConfig:
 class ModelPromotion:
     def __init__(self):
         self.cfg = ModelPromotionConfig()
-        self.client = MlflowClient()
+        # Pass the global URI explicitly to be safe
+        self.client = MlflowClient(tracking_uri=TRACKING_URI)
 
     def get_prod_version(self, name):
         try:

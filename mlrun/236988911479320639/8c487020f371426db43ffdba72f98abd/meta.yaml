@@ -1,0 +1,14 @@
+artifact_uri: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/8c487020f371426db43ffdba72f98abd/artifacts
+end_time: 1763739697928
+entry_point_name: ''
+experiment_id: '236988911479320639'
+lifecycle_stage: active
+run_id: 8c487020f371426db43ffdba72f98abd
+run_name: Training_Run
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1763739298373
+status: 3
+tags: []
+user_id: Ankuc

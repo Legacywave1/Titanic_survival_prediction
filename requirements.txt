@@ -1,12 +1,11 @@
 -e .
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-pydantic==2.9.2
-mlflow==2.17.0
-scikit-learn==1.5.2
-pandas==2.2.3
-numpy==2.0.1
-joblib==1.4.2
-xgboost==2.1.1
-optuna==4.0.0
-jupyter
+fastapi
+uvicorn[standard]
+pydantic
+mlflow
+scikit-learn
+pandas
+numpy
+joblib
+xgboost
+optuna

@@ -1,0 +1,41 @@
+artifact_path: file:C:/Users/Ankuc/OneDrive/Desktop/Titanic/mlrun/236988911479320639/models/m-21c67efe32234339b81047e46837b28b/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.14.0
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+is_signature_from_type_hint: false
+mlflow_version: 3.6.0
+model_id: m-21c67efe32234339b81047e46837b28b
+model_size_bytes: 1333843
+model_uuid: m-21c67efe32234339b81047e46837b28b
+prompts: null
+run_id: 8c487020f371426db43ffdba72f98abd
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "num__Fare", "required": true}, {"type": "double",
+    "name": "num__Age", "required": true}, {"type": "double", "name": "num__FamilySize",
+    "required": true}, {"type": "double", "name": "num__FarePerPerson", "required":
+    true}, {"type": "double", "name": "cat_oh__Sex_male", "required": true}, {"type":
+    "double", "name": "cat_oh__IsAlone_1", "required": true}, {"type": "double", "name":
+    "cat_oe__Embarked", "required": true}, {"type": "double", "name": "cat_oe__AgeGroup",
+    "required": true}, {"type": "double", "name": "cat_oe__Title", "required": true},
+    {"type": "double", "name": "cat_oe__FareGroup", "required": true}, {"type": "double",
+    "name": "cat_oe__Pclass", "required": true}]'
+  outputs: '[{"type": "long", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2025-11-21 15:35:35.655953'

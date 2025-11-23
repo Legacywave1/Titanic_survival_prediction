@@ -6,20 +6,44 @@ import warnings
 import pandas as pd
 import numpy as np
 import mlflow
+import stat
+import time
+import uuid
 from mlflow.tracking import MlflowClient
+from pathlib import Path
+
+# --- DYNAMIC PATH SETUP ---
+current_file_path = Path(__file__).resolve()
+PROJECT_ROOT = current_file_path.parent.parent.parent
+MLRUN_PATH = PROJECT_ROOT / "mlrun"
+TRACKING_URI = MLRUN_PATH.as_uri()
+mlflow.set_tracking_uri(TRACKING_URI)
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
 from src.exception import CustomException
 from src.logger import logging
 from src.utils import load_object
 
-warnings.filterwarnings("ignore", category=FutureWarning)   # optional – silences FS deprecation
+warnings.filterwarnings("ignore", category=FutureWarning)
 
-MLFLOW_TRACKING_URI = f"file:{os.path.abspath('mlruns')}"
-mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+# --- WINDOWS FILE SYSTEM HELPER ---
+def remove_readonly(func, path, excinfo):
+    """
+    Helper to clear the Read-Only flag and retry removal.
+    Fixes [WinError 5] Access is denied on Windows.
+    """
+    try:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    except Exception as e:
+        logging.warning(f"Failed to force delete {path}: {e}")
 
 def Groupage(x):
     if x < 12:   return 'Child'
     elif x <= 45: return 'Adult'
-    else:        return 'Senior'
+    else:         return 'Senior'
 
 class CustomData:
     def __init__(self, Pclass: int, Name: str, Sex: str, Age: float,
@@ -51,7 +75,7 @@ class TitanicPredictor:
         self.model_name = model_name
         self.stage = stage
         self.model = None
-        self.client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
+        self.client = MlflowClient(tracking_uri=TRACKING_URI)
         self.preprocessor = None
         self.age_map = None
         self.fare_bins = None
@@ -67,63 +91,125 @@ class TitanicPredictor:
         self._load_model()
         logging.info(f"Predictor ready – {model_name} ({stage})")
 
-    # --------------------------------------------------------------------- #
-    #  ARTIFACT LOADING – now tells you *exactly* what is missing
-    # --------------------------------------------------------------------- #
     def _load_artifacts(self):
         try:
+            logging.info(f"Looking for model alias '{self.stage}' in {TRACKING_URI}")
             version = self.client.get_model_version_by_alias(self.model_name, self.stage)
             if not version:
                 raise CustomException(f"No {self.stage} alias for model {self.model_name}", sys)
 
             run_id = version.run_id
-            logging.info(f"Downloading artifacts from run {run_id}")
-            self.artifact_dir = f"temp_artifacts/{run_id}"
-            if os.path.exists(self.artifact_dir):
-                shutil.rmtree(self.artifact_dir)
-            os.makedirs(self.artifact_dir, exist_ok=True)
+            run = self.client.get_run(run_id)
+            experiment_id = run.info.experiment_id
 
-            self.client.download_artifacts(run_id, "model_artifacts", self.artifact_dir)
+            # 1. Define Paths
+            run_artifact_root = MLRUN_PATH / experiment_id / run_id / "artifacts"
+            source_artifact_path = run_artifact_root / "model_artifacts"
 
-            sub = os.path.join(self.artifact_dir, "model_artifacts")
-            downloaded = os.listdir(sub)
-            logging.info(f"Downloaded files: {downloaded}")
+            if not source_artifact_path.exists():
+                 source_artifact_path = MLRUN_PATH / experiment_id / run_id / "model_artifacts"
 
-            # ----- explicit paths -----
+            # 2. Prepare Destination (Unique Folder Strategy)
+            # We use a UUID to create a fresh folder every time, avoiding Windows file locks
+            unique_id = uuid.uuid4().hex[:8]
+            self.artifact_dir = PROJECT_ROOT / "temp_artifacts" / f"{run_id}_{unique_id}"
+            self.artifact_dir.mkdir(parents=True, exist_ok=True)
+
+            # Optional: Attempt to clean up OLD folders, but don't crash if locked
+            try:
+                parent_temp = PROJECT_ROOT / "temp_artifacts"
+                if parent_temp.exists():
+                    for p in parent_temp.iterdir():
+                        if p.is_dir() and p.name != self.artifact_dir.name:
+                            shutil.rmtree(p, onerror=remove_readonly)
+            except:
+                pass # Ignore cleanup errors, priority is running the current prediction
+
+            dest_path = self.artifact_dir / "model_artifacts"
+
+            # 3. Copy Custom Artifacts
+            if source_artifact_path.exists():
+                logging.info(f"Copying from {source_artifact_path} to {dest_path}")
+                shutil.copytree(source_artifact_path, dest_path, dirs_exist_ok=True)
+            else:
+                dest_path.mkdir(parents=True, exist_ok=True)
+                logging.warning(f"Custom artifacts folder not found at {source_artifact_path}")
+
+            # 4. MODEL RECOVERY LOGIC
+            model_target = dest_path / "trained_model.pkl"
+
+            if not model_target.exists():
+                logging.warning("trained_model.pkl missing. searching for backup...")
+
+                candidates = [
+                    run_artifact_root / "model" / "model.pkl",
+                    run_artifact_root / "model.pkl",
+                    MLRUN_PATH / experiment_id / run_id / "model" / "model.pkl"
+                ]
+
+                found = False
+                for candidate in candidates:
+                    if candidate.exists():
+                        logging.info(f"Found backup model at {candidate}. Copying...")
+                        shutil.copy(candidate, model_target)
+                        found = True
+                        break
+
+                if not found:
+                    logging.warning("Standard backups failed. Initiating Deep Search for .pkl files...")
+                    run_root = MLRUN_PATH / experiment_id / run_id
+
+                    for root, dirs, files in os.walk(run_root):
+                        for file in files:
+                            if file.endswith(".pkl") and "preprocessor" not in file and "age" not in file and "fare" not in file:
+                                full_path = Path(root) / file
+                                logging.info(f"Deep Search found candidate: {full_path}")
+                                shutil.copy(full_path, model_target)
+                                found = True
+                                break
+                        if found: break
+
+            sub = dest_path
+
+            # 5. Verify final files
             paths = {
-                "preprocessor": os.path.join(sub, "preprocessor.pkl"),
-                "age_map":      os.path.join(sub, "age_median.pkl"),
-                "fare_bins":    os.path.join(sub, "fare_bins.pkl"),
-                "model":        os.path.join(sub, "trained_model.pkl")
+                "preprocessor": sub / "preprocessor.pkl",
+                "age_map":      sub / "age_median.pkl",
+                "fare_bins":    sub / "fare_bins.pkl",
+                "model":        sub / "trained_model.pkl"
             }
 
-            missing = [name for name, p in paths.items() if not os.path.exists(p)]
+            missing = [name for name, p in paths.items() if not p.exists()]
             if missing:
-                raise CustomException(f"Missing artifacts: {', '.join(missing)}", sys)
+                available = os.listdir(sub) if sub.exists() else "Folder not found"
+                try:
+                    run_contents = list(run_artifact_root.rglob("*"))
+                    logging.error(f"Run Artifact Contents: {run_contents}")
+                except:
+                    pass
+                raise CustomException(f"Missing artifacts: {missing}. Temp folder content: {available}", sys)
 
-            self.preprocessor = load_object(paths["preprocessor"])
-            self.age_map      = load_object(paths["age_map"])
-            self.fare_bins    = load_object(paths["fare_bins"])
-
-            # adjust fare labels to match the number of bins
+            self.preprocessor = load_object(str(paths["preprocessor"]))
+            self.age_map      = load_object(str(paths["age_map"]))
+            self.fare_bins    = load_object(str(paths["fare_bins"]))
             self.fare_labels = self.fare_labels[:len(self.fare_bins)-1] or ['Default']
 
         except Exception as e:
             if isinstance(e, CustomException):
                 raise e
-            raise CustomException("Artifact loading failed", sys)
+            logging.error(f"Artifact loading error: {str(e)}")
+            if "[WinError 5]" in str(e):
+                raise CustomException(f"Permission Denied. Please close any files open in 'temp_artifacts' or 'mlrun'. Full error: {str(e)}", sys)
+            raise CustomException(f"Artifact loading failed: {str(e)}", sys)
 
     def _load_model(self):
         try:
-            model_path = os.path.join(self.artifact_dir, "model_artifacts", "trained_model.pkl")
-            self.model = load_object(model_path)
-            logging.info("Model loaded")
+            model_path = self.artifact_dir / "model_artifacts" / "trained_model.pkl"
+            self.model = load_object(str(model_path))
+            logging.info("Model loaded successfully")
         except Exception as e:
-            raise CustomException("Model loading failed", sys)
+            raise CustomException(f"Model loading failed: {str(e)}", sys)
 
-    # --------------------------------------------------------------------- #
-    #  FEATURE ENGINEERING (identical to training)
-    # --------------------------------------------------------------------- #
     def _engineer_features(self, df):
         try:
             df['Title'] = df['Name'].str.extract(r' ([A-Za-z]+)\.', expand=False)
@@ -159,13 +245,13 @@ class TitanicPredictor:
             raise CustomException("Prediction failed", sys)
 
     def __del__(self):
-        if self.artifact_dir and os.path.exists(self.artifact_dir):
-            shutil.rmtree(self.artifact_dir, ignore_errors=True)
-            logging.info(f"Cleaned {self.artifact_dir}")
+        # Robust cleanup on exit, but don't crash if it fails
+        if self.artifact_dir and self.artifact_dir.exists():
+            try:
+                shutil.rmtree(self.artifact_dir, onerror=remove_readonly)
+            except:
+                pass
 
-# ------------------------------------------------------------------------- #
-#  HIGH-LEVEL PIPELINE
-# ------------------------------------------------------------------------- #
 class PredictPipeline:
     def __init__(self):
         self.predictor = None
@@ -176,12 +262,11 @@ class PredictPipeline:
         self.predictor = TitanicPredictor(self.model_name, self.stage)
 
     def _find_best_model(self):
-        client = MlflowClient(tracking_uri=MLFLOW_TRACKING_URI)
+        client = MlflowClient(tracking_uri=TRACKING_URI)
         regs = client.search_registered_models(filter_string="name LIKE 'Titanic_predictor_%'")
         if not regs:
             return None, None
 
-        # Production first
         for m in regs:
             try:
                 client.get_model_version_by_alias(m.name, "Production")
@@ -189,7 +274,6 @@ class PredictPipeline:
             except:
                 continue
 
-        # then Staging
         logging.warning("No Production model – checking Staging")
         for m in regs:
             try:
@@ -203,9 +287,6 @@ class PredictPipeline:
         df = custom_data.get_data_as_frame()
         return self.predictor.predict(df)
 
-# ------------------------------------------------------------------------- #
-#  QUICK TEST
-# ------------------------------------------------------------------------- #
 if __name__ == '__main__':
     try:
         sample = CustomData(
