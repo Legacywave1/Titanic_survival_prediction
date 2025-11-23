@@ -45,8 +45,8 @@ jobs:
 
     - name: Deploy Amazon ECS Task Defintion
       uses: aws-actions/amazon-ecs-deploy-task-definitions@1
-        with:
-          task-definition: ${{steps.render-task-definition.outputs.task-definition}}
-          service: Titanic_prediction_task-service-yto69v5j
-          cluster: Titanic-cluster
-          wait-for-service-stability: true
+      with:
+        task-definition: ${{steps.render-task-definition.outputs.task-definition}}
+        service: Titanic_prediction_task-service-yto69v5j
+        cluster: Titanic-cluster
+        wait-for-service-stability: true
